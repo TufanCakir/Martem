@@ -1,0 +1,70 @@
+{
+    "fighters": [
+        {
+            "id": "raiden",
+            "name": "RAIDEN",
+            "title": "THE STORM",
+            "color": "blue",
+            "image": "charakter_1",
+            "power": 20,
+            "guard": 100
+        },
+        {
+            "id": "akira",
+            "name": "AKIRA",
+            "title": "IRON FIST",
+            "color": "orange",
+            "image": "charakter_2",
+            "power": 23,
+            "guard": 95
+        },
+        {
+            "id": "raven",
+            "name": "RAVEN",
+            "title": "SHADOW BLADE",
+            "color": "purple",
+            "image": "charakter_2",
+            "power": 18,
+            "guard": 110
+        },
+        {
+            "id": "nova",
+            "name": "NOVA",
+            "title": "THE SPARK",
+            "color": "cyan",
+            "image": "charakter_1",
+            "power": 21,
+            "guard": 100
+        }
+    ],
+    "modes": [
+        {
+            "id": "arcade",
+            "name": "ARCADE BATTLE",
+            "description": "Besiege eine Reihe von Gegnern und werde Champion.",
+            "arena": "NEON DOJO",
+            "speed": 1.15,
+            "enemyDamage": 13,
+            "rounds": 3
+        },
+        {
+            "id": "duel",
+            "name": "QUICK DUEL",
+            "description":
+                "Ein direktes Duell. Ein Treffer kann alles entscheiden.",
+            "arena": "IRON ROOFTOP",
+            "speed": 1.4,
+            "enemyDamage": 17,
+            "rounds": 1
+        },
+        {
+            "id": "training",
+            "name": "TRAINING",
+            "description": "Übe dein Timing ohne Druck.",
+            "arena": "STORM TEMPLE",
+            "speed": 0.9,
+            "enemyDamage": 5,
+            "rounds": 1
+        }
+    ]
+}
