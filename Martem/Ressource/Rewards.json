@@ -1,0 +1,48 @@
+{
+    "fighterPrices": {
+        "vorix": 0,
+        "braxo": 0
+    },
+    "skins": [
+        {
+            "id": "vorix_default",
+            "fighterID": "vorix",
+            "name": "VORIX STANDARD",
+            "price": 0,
+            "symbol": "person.fill",
+            "masteryWins": 0
+        },
+        {
+            "id": "vorix_storm",
+            "fighterID": "vorix",
+            "name": "STORM VORIX",
+            "imageURL": "charakter_vorix_storm_skin.png",
+            "price": 800,
+            "symbol": "bolt.fill",
+            "masteryWins": 100
+        },
+        {
+            "id": "braxo_default",
+            "fighterID": "braxo",
+            "name": "BRAXO STANDARD",
+            "price": 0,
+            "symbol": "person.fill",
+            "masteryWins": 0
+        },
+        {
+            "id": "braxo_iron",
+            "fighterID": "braxo",
+            "name": "VENOM BRAXO",
+            "imageURL": "charakter_braxo_venom_skin.png",
+            "price": 800,
+            "symbol": "shield.fill",
+            "masteryWins": 100
+        }
+    ],
+    "rewards": {
+        "loss": 10,
+        "duelWin": 50,
+        "arcadeStage": 75,
+        "noMiss": 25
+    }
+}

@@ -1,6 +1,14 @@
+//
+//  VictoryView.swift
+//  Martem
+//
+//  Created by Tufan Cakir on 21.11.26.
+//
+
 import SwiftUI
 
 struct VictoryView: View {
+    @Environment(\.martemTheme) private var theme
     let model: GameModel
 
     private var duration: String {
@@ -20,38 +28,61 @@ struct VictoryView: View {
                     .lineLimit(1)
 
                 Text(model.won ? "DEIN SIEGER" : "DER GEGNER GEWINNT")
-                    .font(.caption.bold()).tracking(3).foregroundStyle(.cyan)
+                    .font(.caption.bold()).tracking(3).foregroundStyle(
+                        theme.accent
+                    )
 
                 if let winner = model.won ? model.player : model.enemy {
-                    Image(winner.image)
-                        .resizable()
-                        .interpolation(.none)
-                        .scaledToFit()
-                        .frame(width: 150, height: 150)
-                        .background(.white.opacity(0.06))
-                        .overlay(Rectangle().stroke(.cyan.opacity(0.6), lineWidth: 2))
-                        .shadow(color: .cyan.opacity(0.35), radius: 14)
+                    FighterImage(
+                        fighter: winner,
+                        skin: model.won
+                            ? model.progress?.selectedSkin(for: winner.id) : nil
+                    )
+                    .frame(width: 150, height: 150)
+                    .background(.white.opacity(0.06))
+                    .overlay(
+                        Rectangle().stroke(.cyan.opacity(0.6), lineWidth: 2)
+                    )
+                    .shadow(color: .cyan.opacity(0.35), radius: 14)
 
                     Text(winner.name)
                         .font(.system(size: 28, weight: .black)).italic()
                     Text(winner.title)
-                        .font(.caption.bold()).tracking(2).foregroundStyle(.gray)
+                        .font(.caption.bold()).tracking(2).foregroundStyle(
+                            .gray
+                        )
                 }
 
                 VStack(spacing: 0) {
+                    ResultRow(
+                        title: "CREDITS ERHALTEN",
+                        value: "+\(model.earnedCredits)"
+                    )
                     ResultRow(title: "KAMPFDAUER", value: duration)
-                    ResultRow(title: "DEIN SCHADEN GESAMT", value: "\(model.damageDealt)")
-                    ResultRow(title: "ERHALTENER SCHADEN", value: "\(model.damageReceived)")
+                    ResultRow(
+                        title: "DEIN SCHADEN GESAMT",
+                        value: "\(model.damageDealt)"
+                    )
+                    ResultRow(
+                        title: "ERHALTENER SCHADEN",
+                        value: "\(model.damageReceived)"
+                    )
                     ResultRow(title: "TREFFER", value: "\(model.hits)")
-                    ResultRow(title: "PERFEKTE TREFFER", value: "\(model.perfectHits)")
-                    ResultRow(title: "STAGE", value: "\(model.round) / \(model.mode?.rounds ?? 1)")
+                    ResultRow(
+                        title: "PERFEKTE TREFFER",
+                        value: "\(model.perfectHits)"
+                    )
+                    ResultRow(
+                        title: "STAGE",
+                        value: "\(model.round) / \(model.mode?.rounds ?? 1)"
+                    )
                 }
                 .padding(.horizontal, 16)
                 .background(.white.opacity(0.07))
                 .overlay(Rectangle().stroke(.white.opacity(0.2)))
 
                 Button("▶  NOCHMAL KÄMPFEN") { model.startBattle() }
-                    .font(.headline.italic()).foregroundStyle(.orange)
+                    .font(.headline.italic()).foregroundStyle(theme.highlight)
                     .frame(maxWidth: .infinity).padding(.top, 8)
                 Button("MODUS WÄHLEN") { model.leaveBattle() }
                     .font(.headline.italic()).foregroundStyle(.white)

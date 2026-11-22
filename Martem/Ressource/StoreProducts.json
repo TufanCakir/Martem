@@ -1,0 +1,39 @@
+{
+    "products": [
+        {
+            "id": "com.martem.skin.vorix.storm",
+            "kind": "skin",
+            "contentID": "vorix_storm"
+        },
+        {
+            "id": "com.martem.skin.venom",
+            "kind": "skin",
+            "contentID": "braxo_iron"
+        },
+        {
+            "id": "com.martem.credits.500",
+            "kind": "credits",
+            "credits": 500
+        },
+        {
+            "id": "com.martem.credits.1200",
+            "kind": "credits",
+            "credits": 1200
+        },
+        {
+            "id": "com.martem.credits.3300",
+            "kind": "credits",
+            "credits": 3300
+        },
+        {
+            "id": "com.martem.credits.7000",
+            "kind": "credits",
+            "credits": 7000
+        },
+        {
+            "id": "com.martem.credits.15000",
+            "kind": "credits",
+            "credits": 15000
+        }
+    ]
+}

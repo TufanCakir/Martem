@@ -1,0 +1,14 @@
+{
+    "categories": [
+        {
+            "id": "skins",
+            "title": "SKINS",
+            "symbol": "skins"
+        },
+        {
+            "id": "credits",
+            "title": "CREDITS",
+            "symbol": "credits"
+        }
+    ]
+}

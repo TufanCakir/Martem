@@ -1,39 +1,24 @@
 {
+    "contentVersion": 3,
     "fighters": [
         {
-            "id": "raiden",
-            "name": "RAIDEN",
-            "title": "THE STORM",
+            "id": "vorix",
+            "name": "VORIX",
+            "title": "",
             "color": "blue",
             "image": "charakter_1",
+            "imageURL": "charakter_vorix.png",
             "power": 20,
             "guard": 100
         },
         {
-            "id": "akira",
-            "name": "AKIRA",
-            "title": "IRON FIST",
+            "id": "braxo",
+            "name": "BRAXO",
+            "title": "",
             "color": "orange",
             "image": "charakter_2",
-            "power": 23,
-            "guard": 95
-        },
-        {
-            "id": "raven",
-            "name": "RAVEN",
-            "title": "SHADOW BLADE",
-            "color": "purple",
-            "image": "charakter_2",
-            "power": 18,
-            "guard": 110
-        },
-        {
-            "id": "nova",
-            "name": "NOVA",
-            "title": "THE SPARK",
-            "color": "cyan",
-            "image": "charakter_1",
-            "power": 21,
+            "imageURL": "charakter_braxo.png",
+            "power": 20,
             "guard": 100
         }
     ],
@@ -65,6 +50,30 @@
             "speed": 0.9,
             "enemyDamage": 5,
             "rounds": 1
+        },
+        {
+            "id": "pulse",
+            "name": "PULSE",
+            "description":
+                "Triff, wenn der schrumpfende Ring die Zielzone erreicht.",
+            "arena": "STORM TEMPLE",
+            "speed": 1,
+            "enemyDamage": 13,
+            "rounds": 1,
+            "mechanic": "pulse"
+        },
+        {
+            "id": "sudden",
+            "name": "SUDDEN DEATH",
+            "description":
+                "Ein Fehler beendet den Kampf. Die Zielzone wird pro Stage schmaler.",
+            "arena": "IRON ROOFTOP",
+            "speed": 1.15,
+            "enemyDamage": 100,
+            "rounds": 5,
+            "mechanic": "marker",
+            "suddenDeath": true,
+            "stageReward": 100
         }
     ]
 }

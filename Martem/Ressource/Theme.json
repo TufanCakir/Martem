@@ -1,0 +1,44 @@
+{
+    "base": {
+        "blue": "33CCFF",
+        "orange": "FF780D",
+        "steel": "A8C4D1",
+        "background": "0A1729",
+        "spacing": 8,
+        "padding": 22
+    },
+    "modes": {
+        "duel": {
+            "blue": "FFAA55",
+            "orange": "FF780D",
+            "steel": "A8C4D1",
+            "background": "33140D",
+            "spacing": 8,
+            "padding": 22
+        },
+        "training": {
+            "blue": "BA91FF",
+            "orange": "FF780D",
+            "steel": "A8C4D1",
+            "background": "1A1036",
+            "spacing": 8,
+            "padding": 22
+        },
+        "pulse": {
+            "blue": "8B9DFF",
+            "orange": "FF780D",
+            "steel": "A8C4D1",
+            "background": "12183B",
+            "spacing": 8,
+            "padding": 22
+        },
+        "sudden": {
+            "blue": "FF5A50",
+            "orange": "FF780D",
+            "steel": "A8C4D1",
+            "background": "310C12",
+            "spacing": 8,
+            "padding": 22
+        }
+    }
+}
