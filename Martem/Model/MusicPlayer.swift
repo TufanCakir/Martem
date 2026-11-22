@@ -10,6 +10,7 @@ import Foundation
 
 @MainActor
 final class MusicPlayer {
+    private var playingVersion: Int?
     private var player: AVPlayer?
     private var endObserver: NSObjectProtocol?
     private var urls: [URL] = []
@@ -26,21 +27,36 @@ final class MusicPlayer {
     }
 
     func playBattle(_ filenames: [String], version: Int) {
+        if player != nil, playingVersion == version {
+            return
+        }
+
         stop()
+
         guard let base = RemoteConfig.load()?.musicBaseURL,
             base.scheme?.lowercased() == "https"
         else { return }
+
         urls = filenames.compactMap { filename in
             guard !filename.isEmpty,
-                let url = URL(string: filename, relativeTo: base)?.absoluteURL,
+                let url = URL(
+                    string: filename,
+                    relativeTo: base
+                )?.absoluteURL,
                 url.scheme?.lowercased() == "https"
             else { return nil }
+
             return CatalogLoader.versioned(url, version: version)
         }
+
         guard !urls.isEmpty else { return }
+
+        playingVersion = version
         currentIndex = 0
+
         player = AVPlayer()
         player?.volume = enabled ? Float(volume) : 0
+
         playCurrent()
     }
 
@@ -76,5 +92,6 @@ final class MusicPlayer {
         player?.replaceCurrentItem(with: nil)
         player = nil
         urls = []
+        playingVersion = nil
     }
 }

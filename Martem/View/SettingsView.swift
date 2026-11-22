@@ -74,7 +74,7 @@ struct SettingsView: View {
                     )
                     if let privacyURL {
                         Link(
-                            "Datenschutzerklärung von MARTEM",
+                            "Nutzungsbedingungen von MARTEM",
                             destination: privacyURL
                         )
                     } else {

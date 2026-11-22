@@ -75,16 +75,20 @@ struct GameView: View {
     }
 
     private func updateMusic() {
-        if model.screen == .battle && scenePhase == .active
-            && connection.connected
-        {
-            model.musicPlayer.playBattle(
-                model.music.battle,
-                version: model.contentVersion
-            )
-        } else {
+        guard scenePhase == .active,
+            connection.connected,
+            model.screen != .loading,
+            model.screen != .offline,
+            model.screen != .error
+        else {
             model.musicPlayer.stop()
+            return
         }
+
+        model.musicPlayer.playBattle(
+            model.music.battle,
+            version: model.contentVersion
+        )
     }
 }
 
