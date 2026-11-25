@@ -12,7 +12,6 @@ struct GameView: View {
     @State private var model = GameModel()
     @State private var connection = ConnectionMonitor()
     @Environment(\.scenePhase) private var scenePhase
-
     var body: some View {
         ZStack {
             ArcadeBackground(
@@ -22,13 +21,15 @@ struct GameView: View {
             case .loading:
                 LoadingView(
                     progress: model.loadingProgress,
-                    message: model.loadingMessage
+                    message: model.loadingMessage,
+                    bytes: model.loadedBytes
                 )
             case .offline:
                 OfflineView(message: model.loadingMessage) {
                     Task { await prepare() }
                 }
-            case .start: StartScreen { model.screen = .modes }
+            case .start:
+                StartScreen(config: model.startView) { model.screen = .modes }
             case .modes: ModeScreen(model: model)
             case .roster: RosterScreen(model: model)
             case .shop: ShopView(model: model)
@@ -36,7 +37,7 @@ struct GameView: View {
             case .battle: BattleScreen(model: model)
             case .result: VictoryView(model: model)
             case .error:
-                Text("SPIELDATEN KONNTEN NICHT GELADEN WERDEN")
+                Text("FAILED TO LOAD GAME DATA")
                     .font(.headline).foregroundStyle(.white).padding()
             }
             if !connection.connected && model.screen != .loading
@@ -44,7 +45,7 @@ struct GameView: View {
             {
                 OfflineView(
                     message:
-                        "Internetverbindung unterbrochen. Der Kampf ist pausiert."
+                        "Internet connection lost. The battle is paused."
                 ) { Task { await prepare() } }
             }
         }
@@ -52,7 +53,8 @@ struct GameView: View {
         .environment(
             \.martemTheme,
             model.theme.values(
-                for: model.screen == .battle ? model.mode?.id : nil
+                for: (model.screen == .battle || model.screen == .result)
+                    ? model.mode?.id : nil
             )
         )
         .preferredColorScheme(.dark)
@@ -64,7 +66,6 @@ struct GameView: View {
             updateMusic()
         }
     }
-
     private func prepare() async {
         model.scene?.isPaused = true
         await model.load()
@@ -73,7 +74,6 @@ struct GameView: View {
         }
         updateMusic()
     }
-
     private func updateMusic() {
         guard scenePhase == .active,
             connection.connected,
@@ -84,64 +84,40 @@ struct GameView: View {
             model.musicPlayer.stop()
             return
         }
-
         model.musicPlayer.playBattle(
             model.music.battle,
             version: model.contentVersion
         )
     }
 }
-
 private struct ArcadeBackground: View {
-    @Environment(\.martemTheme) private var theme
     let arena: String?
-    private var arenaColor: Color { theme.backdrop }
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [.black, arenaColor, .black],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            Color.black
             if let arena {
                 BattleShaderBackground(arena: arena)
             }
-            GeometryReader { proxy in
-                Path { path in
-                    path.move(to: CGPoint(x: proxy.size.width * 0.8, y: 0))
-                    path.addLines([
-                        CGPoint(
-                            x: proxy.size.width * 0.54,
-                            y: proxy.size.height * 0.28
-                        ),
-                        CGPoint(
-                            x: proxy.size.width * 0.69,
-                            y: proxy.size.height * 0.29
-                        ),
-                        CGPoint(
-                            x: proxy.size.width * 0.25,
-                            y: proxy.size.height * 0.75
-                        ),
-                    ])
-                }.stroke(theme.accent.opacity(0.16), lineWidth: 2).blur(
-                    radius: 2
-                )
-            }
-        }.ignoresSafeArea()
+        }
+        .ignoresSafeArea()
     }
 }
-
-private struct ScreenHeader: View {
+struct ScreenHeader: View {
     @Environment(\.martemTheme) private var theme
     let title: String
     let subtitle: String
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: theme.number("extraSmallSpacing"))
+        {
             Text(subtitle).font(
                 .system(size: 10, weight: .bold, design: .monospaced)
             ).tracking(3).foregroundStyle(theme.accent)
             Text(title).font(
-                .system(size: 31, weight: .black, design: .rounded)
+                .system(
+                    size: theme.number("screenTitle"),
+                    weight: .black,
+                    design: .rounded
+                )
             ).italic().foregroundStyle(.white)
             Rectangle().fill(
                 LinearGradient(
@@ -153,130 +129,210 @@ private struct ScreenHeader: View {
         }
     }
 }
-
 private struct StartScreen: View {
     @Environment(\.martemTheme) private var theme
+    @Environment(\.contentVersion) private var contentVersion
+    let config: StartViewCatalog
     let start: () -> Void
     var body: some View {
         VStack(spacing: 0) {
-
             Spacer()
-
-            Text("MARTEM").font(
-                .system(size: 58, weight: .black, design: .rounded)
-            ).italic()
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.white, theme.metal, .white],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
+            if let base = RemoteConfig.load()?.assetsBaseURL,
+                let url = URL(string: config.logo, relativeTo: base)?
+                    .absoluteURL,
+                url.scheme?.lowercased() == "https",
+                let versioned = CatalogLoader.versioned(
+                    url,
+                    version: contentVersion
                 )
-                .shadow(color: theme.accent, radius: 14)
-                .minimumScaleFactor(0.5).lineLimit(1)
-
-            Spacer()
-
-            Button(action: start) {
-                Text("▶  TAP TO START").font(.system(size: 20, weight: .black))
-                    .italic().foregroundStyle(theme.highlight)
-                    .frame(maxWidth: .infinity).padding()
-                    .background(.white.opacity(0.06))
-                    .overlay(Rectangle().stroke(theme.metal.opacity(0.4)))
+            {
+                CachedRemoteImage(url: versioned) {
+                    fallbackLogo
+                }
+                .frame(height: 150)
+            } else {
+                fallbackLogo
             }
-
+            Text(config.subtitle)
+                .font(.caption2.bold())
+                .tracking(1)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(theme.accent)
+                .padding(.top, 12)
+            Spacer()
+            Text("PRESS TO START")
+                .font(.system(size: 20, weight: .black))
+                .italic()
+                .tracking(2)
+                .foregroundStyle(theme.highlight)
             Spacer().frame(height: 30)
             Text(
                 "© \(Calendar.current.component(.year, from: .now)) Tufan Cakir"
             )
-            .font(.caption2).foregroundStyle(.secondary)
+            .font(.caption2)
+            .foregroundStyle(.secondary)
             Text(
                 "Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "–") · Build \(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "–")"
             )
-            .font(.caption2.monospaced()).foregroundStyle(.secondary)
+            .font(.caption2.monospaced())
+            .foregroundStyle(.secondary)
             .padding(.top, 4)
             Spacer().frame(height: 16)
-        }.padding(.horizontal, 30)
+        }
+        .padding(.horizontal, 30)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
+        .onTapGesture(perform: start)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction {
+            start()
+        }
+    }
+    private var fallbackLogo: some View {
+        Text("MARTEM")
+            .font(.system(size: 48, weight: .black))
+            .italic()
+            .foregroundStyle(theme.metal)
     }
 }
 
 private struct ModeScreen: View {
+
     @Environment(\.martemTheme) private var theme
+
     let model: GameModel
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading, spacing: 12) {
+
             ScreenHeader(
-                title: "MODUS WÄHLEN",
-                subtitle: "MARTEM  /  BATTLE SYSTEM"
+                title: "SELECT MODE",
+                subtitle: "MARTEM / BATTLE SYSTEM"
             )
-            Text("MODUS WÄHLEN").font(.caption.bold()).tracking(2)
-                .foregroundStyle(theme.metal)
-            ScrollView {
-                VStack(spacing: 0) {
-                    ForEach(model.catalog?.modes ?? []) { mode in
-                        Button {
-                            model.selectMode(mode)
-                        } label: {
-                            HStack {
-                                Text(
-                                    model.selectedModeID == mode.id ? "▶" : "■"
-                                )
+
+            VStack(spacing: 0) {
+                ForEach(model.catalog?.modes ?? []) { mode in
+
+                    let selected = model.selectedModeID == mode.id
+
+                    Button {
+                        model.selectMode(mode)
+                    } label: {
+                        HStack(spacing: 10) {
+
+                            Text(selected ? "▶" : "■")
+                                .font(.system(size: 12))
                                 .foregroundStyle(
-                                    model.selectedModeID == mode.id
-                                        ? theme.highlight : theme.accent
+                                    selected
+                                        ? theme.highlight
+                                        : theme.accent
                                 )
-                                Text(mode.name).foregroundStyle(
-                                    model.selectedModeID == mode.id
-                                        ? theme.highlight : .white
+
+                            Text(mode.name)
+                                .font(.system(size: 20, weight: .black))
+                                .italic()
+                                .foregroundStyle(
+                                    selected
+                                        ? theme.highlight
+                                        : .white
                                 )
-                                Spacer()
-                            }.font(.system(size: 20, weight: .black)).italic()
-                                .padding(.vertical, 14)
-                                .overlay(alignment: .bottom) {
-                                    Rectangle().fill(.white.opacity(0.25))
-                                        .frame(
-                                            height: 1
-                                        )
-                                }
+
+                            Spacer(minLength: 0)
+                        }
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
+                        .overlay(alignment: .bottom) {
+                            Rectangle()
+                                .fill(theme.border)
+                                .frame(height: 1)
                         }
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(
+                        selected ? .isSelected : []
+                    )
                 }
             }
+
             if let mode = model.mode {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(mode.name).font(.headline).foregroundStyle(
-                        theme.accent
-                    )
-                    Text(mode.description).font(.subheadline).foregroundStyle(
-                        .white.opacity(0.8)
-                    )
-                    Text("ARENA  /  \(mode.arena)").font(.caption.bold())
+                VStack(alignment: .leading, spacing: 6) {
+
+                    Text(mode.name)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(theme.accent)
+
+                    Text(mode.description)
+                        .font(.caption)
+                        .foregroundStyle(theme.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text("ARENA / \(mode.arena)")
+                        .font(.caption2.bold())
                         .foregroundStyle(theme.highlight)
-                }.frame(maxWidth: .infinity, alignment: .leading).padding()
-                    .background(.white.opacity(0.08))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(10)
+                .background(theme.surface)
             }
-            Spacer()
-            Button {
-                model.screen = .shop
-            } label: {
-                Label(
-                    "SHOP  •  \(model.progress?.credits ?? 0) CREDITS",
-                    systemImage: model.symbols.symbol(for: "credits")
-                )
-                .font(.headline.italic()).foregroundStyle(theme.highlight)
+
+            Spacer(minLength: 0)
+
+            footer
+        }
+        .padding()
+    }
+
+    private var footer: some View {
+        VStack(alignment: .leading, spacing: 8) {
+
+            Text("TAP TO SELECT / TAP AGAIN TO CONFIRM")
+                .font(.caption2.bold())
+                .tracking(1)
+                .foregroundStyle(theme.secondaryText)
+                .frame(maxWidth: .infinity)
+                .multilineTextAlignment(.center)
+
+            Divider()
+
+            HStack(spacing: 12) {
+
+                Button {
+                    model.screen = .shop
+                } label: {
+                    Label(
+                        "SHOP · \(model.progress?.credits ?? 0)",
+                        systemImage: model.symbols.symbol(
+                            for: "credits"
+                        )
+                    )
+                    .foregroundStyle(theme.highlight)
+                    .frame(minHeight: 44)
+                }
+
+                Spacer(minLength: 0)
+
+                Button {
+                    model.screen = .settings
+                } label: {
+                    Label(
+                        "SETTINGS",
+                        systemImage: "gearshape.fill"
+                    )
+                    .foregroundStyle(theme.metal)
+                    .frame(minHeight: 44)
+                }
             }
-            Button {
-                model.screen = .settings
-            } label: {
-                Label("EINSTELLUNGEN", systemImage: "gearshape.fill")
-                    .font(.headline.italic()).foregroundStyle(theme.metal)
+            .font(.subheadline.bold().italic())
+            .buttonStyle(.plain)
+
+            Button("‹ BACK") {
+                model.screen = .start
             }
-            Text("1× AUSWÄHLEN  /  2× BESTÄTIGEN").font(.caption2.bold())
-                .tracking(1).foregroundStyle(.gray)
-            Button("‹  ZURÜCK") { model.screen = .start }.foregroundStyle(
-                .white
-            )
-        }.padding(theme.padding)
+            .font(.caption.bold())
+            .foregroundStyle(.white)
+            .frame(minHeight: 44)
+            .buttonStyle(.plain)
+        }
     }
 }
 
@@ -290,7 +346,7 @@ private struct RosterScreen: View {
                 title: "CHOOSE YOUR FIGHTER",
                 subtitle: model.mode?.name ?? ""
             )
-            Text("WÄHLE DEINEN KÄMPFER").font(.caption.bold()).tracking(2)
+            Text("SELECT YOUR FIGHTER").font(.caption.bold()).tracking(2)
                 .foregroundStyle(theme.metal)
             LazyVGrid(columns: columns, spacing: 12) {
                 ForEach(model.catalog?.fighters ?? []) { fighter in
@@ -306,7 +362,7 @@ private struct RosterScreen: View {
                                 )
                             )
                             if model.progress?.ownsFighter(fighter.id) != true {
-                                Label("GESPERRT", systemImage: "lock.fill")
+                                Label("LOCKED", systemImage: "lock.fill")
                                     .font(.caption2)
                             }
                             Text(fighter.name).font(
@@ -319,8 +375,15 @@ private struct RosterScreen: View {
                             model.selectedFighterID == fighter.id
                                 ? theme.highlight : .white
                         )
-                        .frame(maxWidth: .infinity).padding(.vertical, 16)
-                        .background(.white.opacity(0.06))
+                        .frame(maxWidth: .infinity).padding(
+                            .vertical,
+                            theme.number("largeSpacing")
+                        )
+                        .accessibilityAddTraits(
+                            model.selectedFighterID == fighter.id
+                                ? .isSelected : []
+                        )
+                        .background(theme.surface)
                         .overlay(
                             Rectangle().stroke(
                                 model.selectedFighterID == fighter.id
@@ -340,27 +403,21 @@ private struct RosterScreen: View {
                     )
             }
             Spacer()
-            Text("ERNEUT TIPPEN, UM ZU KÄMPFEN").font(.caption2.bold())
+            Text("TAP AGAIN TO FIGHT").font(.caption2.bold())
                 .tracking(1).foregroundStyle(.gray)
-            Button("‹  ZURÜCK") { model.screen = .modes }.foregroundStyle(
+            Button("‹  BACK") { model.screen = .modes }.foregroundStyle(
                 .white
             )
         }.padding(theme.padding)
     }
 }
-
-private struct FighterPortrait: View {
+struct FighterPortrait: View {
     @Environment(\.martemTheme) private var theme
     let fighter: Fighter
     let size: CGFloat
     var skin: Skin? = nil
     var tint: Color {
-        switch fighter.color {
-        case "orange": theme.highlight
-        case "purple": .purple
-        case "cyan": .cyan
-        default: theme.accent
-        }
+        theme.fighterColor(fighter.color)
     }
     var body: some View {
         ZStack {
@@ -374,7 +431,7 @@ private struct FighterPortrait: View {
             {
                 Image(systemName: skinSymbol)
                     .font(.system(size: size * 0.22, weight: .bold))
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(theme.fighterColor(fighter.color))
                     .shadow(color: .black, radius: 3)
                     .offset(x: size * 0.32, y: size * 0.30)
             }
@@ -384,9 +441,9 @@ private struct FighterPortrait: View {
         )
     }
 }
-
-private struct HealthBar: View {
+struct HealthBar: View {
     @Environment(\.martemTheme) private var theme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let name: String
     let current: Int
     let maximum: Int
@@ -403,7 +460,12 @@ private struct HealthBar: View {
                     Rectangle().fill(.black.opacity(0.8))
                     Rectangle().fill(
                         LinearGradient(
-                            colors: [theme.highlight, .red],
+                            colors: [
+                                theme.color(
+                                    current * 4 <= maximum
+                                        ? "healthCritical" : "healthNormal"
+                                ), theme.color("healthDamage"),
+                            ],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -412,12 +474,22 @@ private struct HealthBar: View {
                         width: proxy.size.width * CGFloat(max(0, current))
                             / CGFloat(max(1, maximum))
                     )
-                }.overlay(Rectangle().stroke(theme.metal, lineWidth: 2))
+                }.overlay(
+                    Rectangle().stroke(
+                        theme.metal,
+                        lineWidth: theme.number("borderWidth")
+                    )
+                )
+                .animation(
+                    reduceMotion
+                        ? nil
+                        : .easeOut(duration: theme.number("damageDuration")),
+                    value: current
+                )
             }.frame(height: 15)
         }
     }
 }
-
 private struct BattleScreen: View {
     @Environment(\.martemTheme) private var theme
     let model: GameModel
@@ -428,11 +500,15 @@ private struct BattleScreen: View {
             GeometryReader { geometry in
                 VStack(spacing: theme.spacing) {
                     HStack {
-                        Button("‹ MENÜ") { model.leaveBattle() }.font(
+                        Button("‹ MENU") { model.leaveBattle() }.font(
                             .caption.bold()
                         )
                         Spacer()
-                        Text("STAGE \(model.round) / \(mode.rounds)").font(
+                        Text(
+                            BattleModeRules.isSurvival(mode.id)
+                                ? "WAVE \(model.round)"
+                                : "STAGE \(model.round) / \(mode.rounds)"
+                        ).font(
                             .caption.bold().monospaced()
                         ).foregroundStyle(theme.accent)
                     }
@@ -453,8 +529,34 @@ private struct BattleScreen: View {
                     Text(mode.arena).font(
                         .system(size: 10, weight: .black, design: .monospaced)
                     ).tracking(3).foregroundStyle(theme.accent)
-                    Text(model.feedback).font(.system(size: 22, weight: .black))
-                        .italic().foregroundStyle(theme.highlight)
+                    if BattleModeRules.isTimeAttack(mode.id) {
+                        Text("TIME  \(Int(model.timeRemaining.rounded(.up))) s")
+                            .font(
+                                .system(
+                                    size: theme.number("timerSize"),
+                                    weight: .bold,
+                                    design: .monospaced
+                                )
+                            ).monospacedDigit().foregroundStyle(
+                                theme.color("timer")
+                            )
+                    }
+                    if BattleModeRules.isOverdrive(mode.id) {
+                        Text("FLOW  \(model.flow)%").font(
+                            .headline.monospacedDigit()
+                        )
+                        ProgressView(value: Double(model.flow), total: 100)
+                            .tint(theme.color("flow"))
+                    }
+                    Text(model.feedback).font(
+                        .system(
+                            size: theme.number("combatFeedback"),
+                            weight: .black
+                        )
+                    )
+                    .italic().foregroundStyle(
+                        theme.feedbackColor(model.feedbackKind)
+                    )
                     SpriteView(scene: scene, options: [.allowsTransparency])
                         .id(ObjectIdentifier(scene))
                         .frame(height: 90).allowsHitTesting(false)
@@ -478,10 +580,10 @@ private struct BattleScreen: View {
                     }
                     Text(
                         model.isTutorial
-                            ? "ÜBUNG: TRIFF DIE ORANGE ZONE – OHNE SCHADEN"
+                            ? "PRACTICE: HIT THE ORANGE ZONE – NO DAMAGE"
                             : (mode.mechanic == .pulse
-                                ? "TIPPE, WENN SICH DIE RINGE TREFFEN"
-                                : "TIPPE IN DER LEUCHTENDEN ZONE")
+                                ? "TAP WHEN THE RINGS ALIGN"
+                                : "TAP WHEN THE MARKER REACHES THE GLOWING ZONE")
                     ).font(
                         .system(size: 9, weight: .bold)
                     ).tracking(1).foregroundStyle(.gray)
@@ -510,7 +612,6 @@ private struct BattleScreen: View {
         }
     }
 }
-
 #Preview {
     GameView()
 }

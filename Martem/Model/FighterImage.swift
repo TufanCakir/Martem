@@ -16,18 +16,8 @@ struct FighterImage: View {
         if let url = remoteURL.flatMap({
             CatalogLoader.versioned($0, version: contentVersion)
         }) {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .empty:
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                case .success(let image):
-                    image.resizable().scaledToFit()
-                case .failure:
-                    fallback
-                @unknown default:
-                    fallback
-                }
+            CachedRemoteImage(url: url) {
+                fallback
             }
         } else {
             fallback
@@ -48,11 +38,18 @@ struct FighterImage: View {
     }
 
     private var fallback: some View {
-        Image(systemName: "person.crop.square.badge.exclamationmark")
+        Image(systemName: "person.crop.square")
             .resizable()
             .scaledToFit()
+            .overlay(alignment: .bottomTrailing) {
+                Image(systemName: "exclamationmark.circle.fill")
+                    .font(.title3)
+                    .symbolRenderingMode(.hierarchical)
+            }
             .padding(12)
             .foregroundStyle(.secondary)
-            .accessibilityLabel("Bild für \(fighter.name) nicht verfügbar")
+            .accessibilityLabel(
+                "Bild für \(fighter.name) nicht verfügbar"
+            )
     }
 }

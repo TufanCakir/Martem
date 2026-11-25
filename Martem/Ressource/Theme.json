@@ -1,44 +1,119 @@
 {
+    "schemaVersion": 2,
     "base": {
-        "blue": "33CCFF",
-        "orange": "FF780D",
-        "steel": "A8C4D1",
-        "background": "0A1729",
-        "spacing": 8,
-        "padding": 22
+        "accent": "E61919",
+        "highlight": "FF7818",
+        "metal": "C4C7CC",
+        "background": "100D0E",
+        "surface": "191617",
+        "elevatedSurface": "252122",
+        "border": "403A3B",
+        "primaryText": "F2F2F2",
+        "secondaryText": "A6A6A6",
+        "mutedText": "777777",
+        "success": "48C99B",
+        "warning": "FFC247",
+        "danger": "FF3444",
+        "healthNormal": "48C99B",
+        "healthCritical": "FF3444",
+        "healthDamage": "FF7818",
+        "flow": "33CCFF",
+        "timer": "FFD044",
+        "experience": "B49AFF",
+        "loading": "E61919"
     },
     "modes": {
         "duel": {
-            "blue": "FFAA55",
-            "orange": "FF780D",
-            "steel": "A8C4D1",
-            "background": "33140D",
-            "spacing": 8,
-            "padding": 22
+            "accent": "E61919",
+            "background": "240C0E"
         },
         "training": {
-            "blue": "BA91FF",
-            "orange": "FF780D",
-            "steel": "A8C4D1",
-            "background": "1A1036",
-            "spacing": 8,
-            "padding": 22
+            "accent": "48C99B",
+            "background": "0B201A",
+            "lightningIntensity": 0
         },
         "pulse": {
-            "blue": "8B9DFF",
-            "orange": "FF780D",
-            "steel": "A8C4D1",
-            "background": "12183B",
-            "spacing": 8,
-            "padding": 22
+            "accent": "B49AFF",
+            "background": "1C122B"
         },
         "sudden": {
-            "blue": "FF5A50",
-            "orange": "FF780D",
-            "steel": "A8C4D1",
-            "background": "310C12",
-            "spacing": 8,
-            "padding": 22
+            "accent": "FF3444",
+            "background": "300609"
+        },
+        "survival": {
+            "accent": "A4C45C",
+            "background": "1A2110"
+        },
+        "time_attack": {
+            "accent": "FFD044",
+            "background": "2A200B"
+        },
+        "overdrive": {
+            "accent": "33CCFF",
+            "background": "081B2C",
+            "lightningIntensity": 0.18
         }
+    },
+    "typography": {
+        "display": 36,
+        "screenTitle": 30,
+        "modeTitle": 20,
+        "sectionTitle": 16,
+        "body": 15,
+        "caption": 12,
+        "combatFeedback": 24,
+        "combatValue": 18,
+        "timerSize": 28
+    },
+    "layout": {
+        "extraSmallSpacing": 4,
+        "smallSpacing": 8,
+        "mediumSpacing": 12,
+        "largeSpacing": 16,
+        "screenPadding": 22,
+        "sectionSpacing": 24,
+        "cornerRadius": 2,
+        "borderWidth": 1,
+        "selectedBorderWidth": 2,
+        "minimumTouchTarget": 44
+    },
+    "components": {},
+    "effects": {
+        "hitZoneOpacity": 0.45,
+        "timingLineWidth": 2,
+        "timingGlow": 1,
+        "damageDuration": 0.18,
+        "pressDuration": 0.12
+    },
+    "shader": {
+        "animationSpeed": 0.12,
+        "brushIntensity": 0.35,
+        "sweepIntensity": 0.25,
+        "lightningIntensity": 0.08,
+        "vignetteIntensity": 0.45,
+        "brightness": 0.8
+    },
+    "fighterColors": {
+        "blue": "33CCFF",
+        "orange": "FF780D",
+        "red": "FF3444",
+        "purple": "B49AFF",
+        "green": "48C99B",
+        "yellow": "FFD044",
+        "white": "E4E4E4",
+        "cyan": "4DE8E8"
+    },
+    "combatFeedbackColors": {
+        "perfect": "FFD044",
+        "great": "48C99B",
+        "good": "33CCFF",
+        "hit": "F2F2F2",
+        "miss": "FF3444",
+        "counter": "FF7818",
+        "block": "A8C4D1",
+        "dodge": "B49AFF",
+        "overdrive": "33CCFF",
+        "victory": "FFD044",
+        "defeat": "FF3444"
     }
 }

@@ -3,6 +3,7 @@
     "themeURL": "https://remotemartem.tufancakir.com/Theme.json",
     "rewardsURL": "https://remotemartem.tufancakir.com/Rewards.json",
     "musicConfigURL": "https://remotemartem.tufancakir.com/Music.json",
+    "startViewURL": "https://remotemartem.tufancakir.com/StartView.json",
     "assetsBaseURL": "https://remotemartem.tufancakir.com/assets/",
     "musicBaseURL": "https://remotemartem.tufancakir.com/music/",
     "privacyPolicyURL": "https://martemprivacypolicy.tufancakir.com"

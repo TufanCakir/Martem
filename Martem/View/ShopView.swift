@@ -24,8 +24,7 @@ private struct ShopCategories: Decodable {
                 withExtension: "json"
             ),
             let data = try? Data(contentsOf: url),
-            let catalog = try? JSONDecoder().decode(Self.self, from: data),
-            !catalog.categories.isEmpty
+            let catalog = try? JSONDecoder().decode(Self.self, from: data)
         else { return [] }
         return catalog.categories
     }
@@ -39,178 +38,235 @@ struct ShopView: View {
     private let categories = ShopCategories.load()
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("MARTEM SHOP").font(.largeTitle.bold()).italic()
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("MARTEM SHOP").font(.title2.bold()).italic()
+                Spacer(minLength: 8)
                 Label(
-                    "\(model.progress?.credits ?? 0) CREDITS",
+                    "\(model.progress?.credits ?? 0)",
                     systemImage: model.symbols.symbol(for: "credits")
                 )
-                .font(.headline.monospaced()).foregroundStyle(theme.highlight)
-                ScrollView(.horizontal) {
-                    HStack {
-                        ForEach(categories) { category in
-                            Button {
-                                selectedCategory = category.id
-                            } label: {
-                                Label(
-                                    category.title,
-                                    systemImage: model.symbols.symbol(
-                                        for: category.symbol
-                                    )
+                .font(.subheadline.bold().monospacedDigit())
+                .foregroundStyle(theme.highlight)
+                .accessibilityLabel("\(model.progress?.credits ?? 0) credits")
+            }
+            ScrollView(.horizontal) {
+                HStack(spacing: 8) {
+                    ForEach(categories) { category in
+                        Button {
+                            selectedCategory = category.id
+                        } label: {
+                            Label(
+                                categoryTitle(category),
+                                systemImage: model.symbols.symbol(
+                                    for: category.symbol
                                 )
-                                .foregroundStyle(
+                            )
+                            .font(.caption.bold())
+                            .padding(.horizontal, 12)
+                            .frame(minHeight: 44)
+                            .foregroundStyle(
+                                selectedCategory == category.id
+                                    ? theme.highlight : theme.metal
+                            )
+                            .overlay(
+                                Rectangle().stroke(
                                     selectedCategory == category.id
-                                        ? theme.highlight : .white
+                                        ? theme.highlight : theme.border
                                 )
-                            }.buttonStyle(.bordered)
+                            )
                         }
+                        .buttonStyle(.plain)
+                        .accessibilityAddTraits(
+                            selectedCategory == category.id ? .isSelected : []
+                        )
                     }
                 }
-                if !message.isEmpty {
-                    Text(message).font(.caption).foregroundStyle(theme.accent)
+            }
+            .scrollIndicators(.hidden)
+
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 10) {
+                    if !message.isEmpty {
+                        Text(message).font(.caption).foregroundStyle(
+                            theme.accent
+                        )
+                    }
+                    if selectedCategory == "skins" {
+                        skinSection
+                    } else if selectedCategory == "credits" {
+                        creditSection
+                    }
+                    if !model.store.message.isEmpty {
+                        Text(model.store.message).font(.caption)
+                            .foregroundStyle(theme.accent)
+                    }
                 }
-                if selectedCategory == "skins" {
-                    skinSection
-                } else if selectedCategory == "credits" {
-                    creditSection
-                }
-                if !model.store.message.isEmpty {
-                    Text(model.store.message).font(.caption).foregroundStyle(
-                        theme.accent
-                    )
-                }
-                Button("KÄUFE WIEDERHERSTELLEN") {
+            }
+            HStack {
+                Button("‹ BACK") { model.screen = .modes }
+                    .foregroundStyle(theme.highlight)
+                Spacer()
+                Button("RESTORE PURCHASES") {
                     Task { await model.store.restore() }
                 }
-                .buttonStyle(.bordered)
-                .font(.caption.bold())
-                Button("‹  ZURÜCK") { model.screen = .modes }.font(.headline)
-                    .buttonStyle(.plain)
-            }.padding(24)
+                .foregroundStyle(theme.metal)
+            }
+            .font(.caption.bold())
+            .buttonStyle(.plain)
+            .frame(minHeight: 44)
+        }
+        .padding(12)
+    }
+
+    private func categoryTitle(_ category: ShopCategory) -> String {
+        switch category.id {
+        case "skins": "SKINS"
+        case "credits": "CREDITS"
+        default: category.title
         }
     }
 
     private var skinSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Skins sind kosmetisch und verändern keine Kampfwerte.")
-                .font(.subheadline).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Cosmetic only. No stat changes.")
+                .font(.caption).foregroundStyle(.secondary)
             if let progress = model.progress {
                 ForEach(model.catalog?.fighters ?? []) { fighter in
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 8) {
                             FighterImage(fighter: fighter).frame(
-                                width: 56,
-                                height: 56
+                                width: 40,
+                                height: 40
                             )
-                            VStack(alignment: .leading) {
-                                Text(fighter.name).font(.headline.italic())
-                                Text("SIEGE  \(progress.wins(for: fighter.id))")
-                                    .font(.caption.monospaced())
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(fighter.name).font(.subheadline.bold())
+                                    .italic()
+                                Text("\(progress.wins(for: fighter.id)) WINS")
+                                    .font(.caption2.monospacedDigit())
                                     .foregroundStyle(theme.accent)
                             }
+                            Spacer(minLength: 0)
                         }
                         ForEach(
                             progress.catalog.skins.filter {
                                 $0.fighterID == fighter.id
                             }
                         ) { skin in
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    FighterImage(fighter: fighter, skin: skin)
-                                        .frame(width: 44, height: 44)
-                                    VStack(alignment: .leading) {
-                                        Text(skin.name).font(
-                                            .subheadline.bold()
-                                        )
-                                        if skin.masteryWins > 0 {
-                                            Text(
-                                                "\(skin.masteryWins) Siege für Meisterschaft"
-                                            )
+                            Divider()
+                            HStack(spacing: 6) {
+                                FighterImage(fighter: fighter, skin: skin)
+                                    .frame(width: 36, height: 36)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(skin.name).font(.caption.bold())
+                                    if skin.masteryWins > 0 {
+                                        Text("\(skin.masteryWins) mastery wins")
                                             .font(.caption2).foregroundStyle(
                                                 .secondary
                                             )
-                                        }
                                     }
-                                    Spacer()
                                 }
+                                Spacer(minLength: 2)
                                 if progress.ownsSkin(skin) {
                                     if progress.selectedSkin(for: fighter.id)?
                                         .id == skin.id
                                     {
-                                        Text("AKTIV").font(.caption.bold())
-                                            .foregroundStyle(.green)
+                                        Text("EQUIPPED").font(.caption2.bold())
+                                            .foregroundStyle(theme.success)
                                     } else {
-                                        Button("WÄHLEN") {
-                                            progress.equip(skin)
-                                        }
-                                        .buttonStyle(.bordered).disabled(
-                                            !progress.ownsFighter(fighter.id)
-                                        )
+                                        Button("EQUIP") { progress.equip(skin) }
+                                            .disabled(
+                                                !progress.ownsFighter(
+                                                    fighter.id
+                                                )
+                                            )
                                     }
                                 } else {
-                                    HStack {
-                                        Button("\(skin.price) CREDITS") {
-                                            message =
-                                                progress.buySkin(skin)
-                                                ? "Skin freigeschaltet."
-                                                : "Nicht genug Credits oder Kämpfer gesperrt."
-                                        }.buttonStyle(.bordered)
-                                        if let product = productForSkin(skin.id)
-                                        {
-                                            Button(product.displayPrice) {
-                                                Task {
-                                                    await model.store.purchase(
-                                                        product
-                                                    )
-                                                }
-                                            }.buttonStyle(.bordered)
-                                        } else {
-                                            Text(
-                                                "Echtgeldpreis nicht verfügbar"
-                                            ).font(.caption2).foregroundStyle(
-                                                .secondary
-                                            )
+                                    ViewThatFits(in: .horizontal) {
+                                        HStack(spacing: 4) {
+                                            skinPurchaseButtons(skin)
                                         }
+                                        VStack(alignment: .trailing, spacing: 4)
+                                        { skinPurchaseButtons(skin) }
                                     }
                                 }
                             }
-                            Divider()
+                            .font(.caption2.bold())
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
                         }
-                    }.padding().background(.white.opacity(0.07))
+                    }
+                    .padding(8)
+                    .background(theme.surface)
+                    .overlay(
+                        Rectangle().stroke(
+                            theme.border,
+                            lineWidth: theme.number("borderWidth")
+                        )
+                    )
                 }
             }
         }
     }
 
+    @ViewBuilder
+    private func skinPurchaseButtons(_ skin: Skin) -> some View {
+        Button("\(skin.price) CR") {
+            if let progress = model.progress {
+                message =
+                    progress.buySkin(skin)
+                    ? "Skin unlocked."
+                    : "Not enough credits or fighter locked."
+            }
+        }
+        if let product = productForSkin(skin.id) {
+            Button(product.displayPrice) {
+                Task { await model.store.purchase(product) }
+            }
+        } else {
+            Text("Price unavailable").font(.caption2).foregroundStyle(
+                .secondary
+            )
+        }
+    }
+
     private var creditSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Credits können mehrfach gekauft werden.").font(.subheadline)
-                .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Credits can be purchased multiple times.")
+                .font(.caption).foregroundStyle(.secondary)
             let products = model.store.products.filter {
                 model.store.item(for: $0.id)?.kind == .credits
-            }
-            .sorted {
+            }.sorted {
                 (model.store.item(for: $0.id)?.credits ?? 0)
                     < (model.store.item(for: $1.id)?.credits ?? 0)
             }
             if products.isEmpty {
-                Text("Credit-Pakete sind momentan nicht verfügbar.")
-                    .foregroundStyle(.secondary)
+                Text("Credit packs are currently unavailable.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             ForEach(products, id: \.id) { product in
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text(product.displayName).font(.headline)
-                        Text(product.description).font(.caption)
+                HStack(spacing: 8) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(product.displayName).font(.subheadline.bold())
+                        Text(product.description).font(.caption2)
                             .foregroundStyle(.secondary)
                     }
-                    Spacer()
+                    Spacer(minLength: 4)
                     Button(product.displayPrice) {
                         Task { await model.store.purchase(product) }
                     }
                     .buttonStyle(.bordered)
-                }.padding().background(.white.opacity(0.07))
+                    .controlSize(.small)
+                    .font(.caption.bold())
+                }
+                .padding(8)
+                .background(theme.surface)
+                .overlay(
+                    Rectangle().stroke(
+                        theme.border,
+                        lineWidth: theme.number("borderWidth")
+                    )
+                )
             }
         }
     }

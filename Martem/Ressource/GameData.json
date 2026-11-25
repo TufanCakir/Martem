@@ -1,5 +1,5 @@
 {
-    "contentVersion": 3,
+    "contentVersion": 6,
     "fighters": [
         {
             "id": "vorix",
@@ -24,19 +24,9 @@
     ],
     "modes": [
         {
-            "id": "arcade",
-            "name": "ARCADE BATTLE",
-            "description": "Besiege eine Reihe von Gegnern und werde Champion.",
-            "arena": "NEON DOJO",
-            "speed": 1.15,
-            "enemyDamage": 13,
-            "rounds": 3
-        },
-        {
             "id": "duel",
             "name": "QUICK DUEL",
-            "description":
-                "Ein direktes Duell. Ein Treffer kann alles entscheiden.",
+            "description": "A direct duel. One strike can decide everything.",
             "arena": "IRON ROOFTOP",
             "speed": 1.4,
             "enemyDamage": 17,
@@ -45,7 +35,7 @@
         {
             "id": "training",
             "name": "TRAINING",
-            "description": "Übe dein Timing ohne Druck.",
+            "description": "Practice your timing without pressure.",
             "arena": "STORM TEMPLE",
             "speed": 0.9,
             "enemyDamage": 5,
@@ -53,9 +43,8 @@
         },
         {
             "id": "pulse",
-            "name": "PULSE",
-            "description":
-                "Triff, wenn der schrumpfende Ring die Zielzone erreicht.",
+            "name": "INSTINCT",
+            "description": "Read the rhythm and strike at the right moment.",
             "arena": "STORM TEMPLE",
             "speed": 1,
             "enemyDamage": 13,
@@ -66,7 +55,7 @@
             "id": "sudden",
             "name": "SUDDEN DEATH",
             "description":
-                "Ein Fehler beendet den Kampf. Die Zielzone wird pro Stage schmaler.",
+                "One mistake ends the fight. The target zone shrinks each stage.",
             "arena": "IRON ROOFTOP",
             "speed": 1.15,
             "enemyDamage": 100,
@@ -74,6 +63,39 @@
             "mechanic": "marker",
             "suddenDeath": true,
             "stageReward": 100
+        },
+        {
+            "id": "survival",
+            "name": "SURVIVAL",
+            "description":
+                "Survive wave after wave with your remaining health.",
+            "arena": "NEON DOJO",
+            "speed": 1.15,
+            "enemyDamage": 8,
+            "rounds": 9999,
+            "mechanic": "marker"
+        },
+        {
+            "id": "time_attack",
+            "name": "TIME ATTACK",
+            "description":
+                "Defeat three opponents before time runs out. Perfect hits grant extra time.",
+            "arena": "IRON ROOFTOP",
+            "speed": 1.15,
+            "enemyDamage": 8,
+            "rounds": 3,
+            "mechanic": "marker"
+        },
+        {
+            "id": "overdrive",
+            "name": "OVERDRIVE",
+            "description":
+                "Build Flow with successful strikes. Mistakes break your streak.",
+            "arena": "STORM TEMPLE",
+            "speed": 1.15,
+            "enemyDamage": 8,
+            "rounds": 3,
+            "mechanic": "dual"
         }
     ]
 }

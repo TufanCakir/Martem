@@ -12,6 +12,7 @@ struct RemoteConfig: Decodable {
     let themeURL: URL?
     let rewardsURL: URL?
     let musicConfigURL: URL?
+    let startViewURL: URL?
     let assetsBaseURL: URL?
     let musicBaseURL: URL?
     let privacyPolicyURL: URL?
@@ -25,6 +26,28 @@ struct RemoteConfig: Decodable {
             let data = try? Data(contentsOf: url)
         else { return nil }
         return try? JSONDecoder().decode(Self.self, from: data)
+    }
+}
+
+struct StartViewCatalog: Codable {
+    let logo: String
+    let subtitle: String
+
+    static func bundled() -> StartViewCatalog {
+        guard
+            let url = Bundle.main.url(
+                forResource: "StartView",
+                withExtension: "json"
+            ),
+            let data = try? Data(contentsOf: url),
+            let value = try? JSONDecoder().decode(Self.self, from: data)
+        else {
+            return StartViewCatalog(
+                logo: "martem_logo.png",
+                subtitle: "DON’T JUST FIGHT. MASTER THE ART OF COMBAT."
+            )
+        }
+        return value
     }
 }
 
@@ -84,12 +107,11 @@ enum CatalogLoader {
         guard let url, url.scheme?.lowercased() == "https" else {
             throw URLError(.badURL)
         }
-        var request = URLRequest(
+        let request = URLRequest(
             url: url,
-            cachePolicy: .reloadIgnoringLocalCacheData,
+            cachePolicy: .useProtocolCachePolicy,
             timeoutInterval: 10
         )
-        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let response = response as? HTTPURLResponse,
             (200..<300).contains(response.statusCode),
